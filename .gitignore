@@ -1,0 +1,5 @@
+# Ignore Python virtual environment
+workai_env/
+
+# Ignore local environment files
+.env
