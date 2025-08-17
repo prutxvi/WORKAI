@@ -1,5 +1,6 @@
 import asyncio
 import os
+from typing import List, Dict
 from browser_controller import WorkAIBrowser
 from research_agent import WorkAIResearcher
 from dotenv import load_dotenv
@@ -10,84 +11,98 @@ class WorkAI:
     def __init__(self):
         self.browser = WorkAIBrowser()
         self.researcher = WorkAIResearcher()
+
+    async def conduct_deep_research(self, search_terms: List[str], search_type: str) -> List[Dict]:
+        """Conduct research for a specific search type"""
+        results = []
         
+        for search_term in search_terms:
+            print(f"   🔎 [{search_type.upper()}] Researching: {search_term}")
+            
+            search_results = await self.browser.duckduckgo_search(search_term)
+            if not search_results:
+                results.append({
+                    "search_term": search_term,
+                    "answer": "No search results found",
+                    "search_type": search_type
+                })
+                continue
+            
+            # Try multiple sources for better coverage
+            answer_found = False
+            for i, result in enumerate(search_results[:4]):  # Check top 4 results
+                try:
+                    content = await self.browser.extract_page_content(result['url'])
+                    if content:
+                        answer = self.researcher.extract_answer_from_content(content, search_term, search_type)
+                        if "No clear answer found" not in answer:
+                            results.append({
+                                "search_term": search_term,
+                                "answer": answer,
+                                "source": result['url'],
+                                "search_type": search_type
+                            })
+                            answer_found = True
+                            break
+                except Exception as e:
+                    print(f"   ⚠️ Skipping {result['url']}: {e}")
+                    continue
+            
+            if not answer_found:
+                results.append({
+                    "search_term": search_term,
+                    "answer": "Could not find reliable answer",
+                    "search_type": search_type
+                })
+        
+        return results
+
     async def research_query(self, user_query: str) -> str:
-        """Main research pipeline"""
-        print(f"🔍 WORKAI Research Starting...")
+        print(f"🔍 WORKAI Deep Research Starting...")
         print(f"📝 Query: {user_query}")
-        print("=" * 50)
+        print("=" * 60)
         
         try:
-            # Step 1: Start browser
             print("1️⃣ Starting browser...")
             browser_started = await self.browser.start_browser()
             if not browser_started:
                 return "❌ Failed to start browser. Please try again."
             
-            # Step 2: Break down the query
-            print("2️⃣ Breaking down query...")
-            search_terms = self.researcher.break_down_query(user_query)
+            print("2️⃣ Creating deep research plan...")
+            search_plan = self.researcher.break_down_query(user_query)
             
-            # Step 3: Research each search term
-            print("3️⃣ Conducting research...")
-            research_results = []
+            print("3️⃣ Conducting multi-layer research...")
+            all_results = {}
             
-            for i, search_term in enumerate(search_terms, 1):
-                print(f"   🔎 Researching: {search_term}")
-                
-                # USE DUCKDUCKGO SEARCH INSTEAD OF GOOGLE
-                search_results = await self.browser.duckduckgo_search(search_term)
-                
-                if not search_results:
-                    research_results.append({
-                        "search_term": search_term,
-                        "answer": "No search results found"
-                    })
-                    continue
-                
-                # Try to extract answer from top results
-                answer_found = False
-                for result in search_results[:3]:  # Check top 3 results
-                    try:
-                        content = await self.browser.extract_page_content(result['url'])
-                        if content:
-                            answer = self.researcher.extract_answer_from_content(content, search_term)
-                            if "No clear answer found" not in answer:
-                                research_results.append({
-                                    "search_term": search_term,
-                                    "answer": answer,
-                                    "source": result['url']
-                                })
-                                answer_found = True
-                                break
-                    except Exception as e:
-                        print(f"   ⚠️ Skipping {result['url']}: {e}")
-                        continue
-                
-                if not answer_found:
-                    research_results.append({
-                        "search_term": search_term,
-                        "answer": "Could not find reliable answer"
-                    })
+            # Research each layer
+            for search_type, terms in search_plan.items():
+                if terms:
+                    print(f"\n🔍 Layer: {search_type.upper()}")
+                    results = await self.conduct_deep_research(terms, search_type)
+                    all_results[search_type] = results
             
-            # Step 4: Generate final answer
-            print("4️⃣ Generating final answer...")
-            final_answer = self.researcher.synthesize_final_answer(user_query, research_results)
+            print("\n4️⃣ Analyzing contradictions and verifying facts...")
+            verification_results = all_results.get('verification', [])
+            contradiction_analysis = self.researcher.analyze_contradictions(verification_results)
+            
+            print("5️⃣ Synthesizing comprehensive answer...")
+            final_answer = self.researcher.synthesize_comprehensive_answer(
+                user_query, all_results, contradiction_analysis
+            )
             
             return final_answer
             
         except Exception as e:
-            print(f"❌ Research failed: {e}")
-            return f"Sorry, research failed due to: {str(e)}"
+            print(f"❌ Deep research failed: {e}")
+            return f"Sorry, deep research failed due to: {str(e)}"
         
         finally:
-            # Always close browser
             await self.browser.close_browser()
-    
+
     async def interactive_mode(self):
-        """Interactive chat mode"""
-        print("🤖 WORKAI - Your AI Research Assistant")
-        print("Type your questions and I'll research them for you!")
+        print("🤖 WORKAI - Advanced AI Research Assistant")
+        print("Conducting deeper research than standard AI tools...")
+        print("Type your questions and I'll perform comprehensive analysis!")
         print("Type 'quit' to exit\n")
         
         while True:
@@ -101,11 +116,10 @@ class WorkAI:
                 if not user_input:
                     continue
                 
-                print("\n" + "="*50)
+                print("\n" + "="*60)
                 answer = await self.research_query(user_input)
-                print("="*50)
-                print(f"🤖 WORKAI: {answer}")
-                print("\n")
+                print("="*60)
+                print(f"{answer}\n")
                 
             except KeyboardInterrupt:
                 print("\n👋 Goodbye!")
@@ -114,18 +128,14 @@ class WorkAI:
                 print(f"❌ Error: {e}")
 
 async def main():
-    """Main application entry point"""
     workai = WorkAI()
     
-    # Check if running in interactive mode or with command line argument
     import sys
     if len(sys.argv) > 1:
-        # Command line mode
         query = " ".join(sys.argv[1:])
         answer = await workai.research_query(query)
-        print(f"\n🤖 WORKAI Answer: {answer}")
+        print(f"\n🤖 WORKAI Deep Research:\n{answer}")
     else:
-        # Interactive mode
         await workai.interactive_mode()
 
 if __name__ == "__main__":
