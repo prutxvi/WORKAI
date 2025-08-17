@@ -1,17 +1,17 @@
-import google.generativeai as genai
 import os
 from typing import List, Dict
+from groq import Groq
 from dotenv import load_dotenv
 
 load_dotenv()
 
 class WorkAIResearcher:
     def __init__(self):
-        api_key = os.getenv("GOOGLE_API_KEY")
+        api_key = os.getenv("GROQ_API_KEY")
         if not api_key:
-            raise ValueError("GOOGLE_API_KEY not found in .env file")
-        genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel('gemini-1.5-flash')
+            raise ValueError("GROQ_API_KEY not found in .env file")
+        self.client = Groq(api_key=api_key)
+        self.model = "llama-3.3-70b-versatile"  # Free Llama model on Groq
 
     def break_down_query(self, user_query: str) -> Dict[str, List[str]]:
         """Break query into multiple research layers for deep search"""
@@ -32,8 +32,14 @@ VERIFICATION: term1, term2
 RECENT: term1 2024, term2 latest
 '''
         try:
-            response = self.model.generate_content(prompt)
-            lines = response.text.strip().split('\n')
+            response = self.client.chat.completions.create(
+                messages=[{"role": "user", "content": prompt}],
+                model=self.model,
+                temperature=0.3,
+                max_tokens=300
+            )
+            
+            lines = response.choices[0].message.content.strip().split('\n')
             
             search_plan = {
                 'primary': [],
@@ -95,8 +101,13 @@ Answer:
 '''
         
         try:
-            response = self.model.generate_content(prompt)
-            answer = response.text.strip()
+            response = self.client.chat.completions.create(
+                messages=[{"role": "user", "content": prompt}],
+                model=self.model,
+                temperature=0,
+                max_tokens=200
+            )
+            answer = response.choices[0].message.content.strip()
             print(f"✅ Extracted {search_type} answer for '{search_term}': {answer[:100]}...")
             return answer
         except Exception as e:
@@ -123,8 +134,13 @@ Keep it concise and factual.
 '''
         
         try:
-            response = self.model.generate_content(prompt)
-            return response.text.strip()
+            response = self.client.chat.completions.create(
+                messages=[{"role": "user", "content": prompt}],
+                model=self.model,
+                temperature=0.2,
+                max_tokens=300
+            )
+            return response.choices[0].message.content.strip()
         except Exception as e:
             print(f"❌ Failed to analyze contradictions: {e}")
             return "Could not analyze verification data"
@@ -199,8 +215,13 @@ Show the depth of research conducted.
 '''
         
         try:
-            response = self.model.generate_content(prompt)
-            final_answer = response.text.strip()
+            response = self.client.chat.completions.create(
+                messages=[{"role": "user", "content": prompt}],
+                model=self.model,
+                temperature=0.3,
+                max_tokens=800
+            )
+            final_answer = response.choices[0].message.content.strip()
             print("✅ Generated comprehensive deep research answer")
             
             return (
