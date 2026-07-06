@@ -3,3 +3,8 @@ workai_env/
 
 # Ignore local environment files
 .env
+
+.DS_Store
+*.pyc
+__pycache__/
+output/
