@@ -1,3 +1,4 @@
+"""research_agent module."""
 import os
 from typing import List, Dict
 from groq import Groq
