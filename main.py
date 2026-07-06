@@ -1,3 +1,4 @@
+"""main module."""
 import asyncio
 import os
 from typing import List, Dict
