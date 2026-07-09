@@ -8,3 +8,7 @@ workai_env/
 *.pyc
 __pycache__/
 output/
+
+*.swp
+*.swo
+*~
