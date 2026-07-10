@@ -1,3 +1,4 @@
+from __future__ import annotations
 """main module."""
 import asyncio
 import os
