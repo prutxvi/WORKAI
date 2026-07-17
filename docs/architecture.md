@@ -1,0 +1,6 @@
+# WORKAI Architecture
+
+## Overview
+
+## Components
+
