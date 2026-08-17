@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+from __future__ import annotations
+"""browser_controller module."""
 import asyncio
 import os
 from playwright.async_api import async_playwright

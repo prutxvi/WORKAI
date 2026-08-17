@@ -1,0 +1,4 @@
+# WORKAI Errors
+
+## Codes
+

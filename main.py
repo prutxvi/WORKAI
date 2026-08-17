@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+from __future__ import annotations
+"""main module."""
 import asyncio
 import os
 from typing import List, Dict
