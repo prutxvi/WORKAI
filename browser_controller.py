@@ -15,12 +15,12 @@ class WorkAIBrowser:
         self.playwright = None
 
     def is_valid_url(self, url):
-        """Filter out bad URLs that cause navigation errors"""
-        if not url or url.startswith('/?t=h_&q='):  # Skip DuckDuckGo internal URLs
+        """Filter out bad or unsafe URLs that cause navigation errors."""
+        if not url or url.startswith("/?t=h_&q="):  # Skip DuckDuckGo internal URLs
             return False
-        if any(bad in url for bad in ['javascript:', 'mailto:', 'ads.', '#']):
+        if any(bad in url for bad in ["javascript:", "mailto:", "data:", "file:", "ads.", "#"]):
             return False
-        if not url.startswith(('http://', 'https://')):
+        if not url.startswith(("http://", "https://")):
             return False
         return True
 
