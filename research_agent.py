@@ -149,25 +149,25 @@ Keep it concise and factual.
             return "Could not analyze verification data"
 
     def calculate_research_confidence(self, all_results: Dict) -> str:
-        """Enhanced confidence calculation for deep search"""
+        """Enhanced confidence calculation for deep search."""
         total_searches = sum(len(results) for results in all_results.values())
         if total_searches == 0:
             return "Research Confidence: 0%"
-            
+
         successful_extractions = 0
         verification_quality = 0
-        
+        no_answer_markers = ("No clear answer found", "Could not extract answer")
+
         for search_type, results in all_results.items():
             for result in results:
-                if "No clear answer found" not in result['answer'] and "Could not extract answer" not in result['answer']:
+                answer = result.get("answer", "")
+                if answer and not answer.startswith(no_answer_markers):
                     successful_extractions += 1
-                    
-                # Bonus for verification data
-                if search_type == 'verification' and len(result['answer']) > 50:
+                if search_type == "verification" and len(answer) > 50:
                     verification_quality += 1
-        
+
         base_confidence = (successful_extractions / total_searches) * 100
-        verification_bonus = (verification_quality / max(1, len(all_results.get('verification', [])))) * 15
+        verification_bonus = (verification_quality / max(1, len(all_results.get("verification", [])))) * 15
         final_confidence = min(100, base_confidence + verification_bonus)
         
         return f"Research Confidence: {final_confidence:.0f}% (Deep Search)"
