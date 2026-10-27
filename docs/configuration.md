@@ -1,4 +1,0 @@
-# WORKAI Configuration
-
-## Options
-

@@ -1,4 +1,0 @@
-# WORKAI Compliance
-
-## Standards
-

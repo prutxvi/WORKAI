@@ -1,4 +1,0 @@
-# WORKAI Troubleshooting
-
-## Common Issues
-

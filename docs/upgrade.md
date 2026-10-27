@@ -1,4 +1,0 @@
-# WORKAI Upgrade
-
-## Steps
-

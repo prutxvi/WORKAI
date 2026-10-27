@@ -1,4 +1,0 @@
-# WORKAI FAQ
-
-## Getting Started
-

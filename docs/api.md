@@ -1,4 +1,0 @@
-# WORKAI API
-
-## Endpoints
-

@@ -1,4 +1,0 @@
-# WORKAI Webhooks
-
-## Events
-
